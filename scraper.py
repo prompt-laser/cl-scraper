@@ -11,8 +11,9 @@ class posting:
                 self.score = 0
                 if(self.description):
                         for term in terms:
-                                if(self.description.find(term) != -1):
-                                        self.score = self.score + 1
+                                tempDesc = self.description.lower()
+                                if(tempDesc.find(term) != -1):
+                                        self.score = self.score - 1
 
         def SetPrice(self, title):
                 splitString = title.split(' ')
@@ -29,28 +30,26 @@ class posting:
                 self.score = 0
                 self.price = 0
 
-url = "https://sheboygan.craigslist.org/search/sya?format=rss"
-link = []
-description = []
+urls = {"https://sheboygan.craigslist.org/search/sya?format=rss", "https://milwaukee.craigslist.org/search/sya?format=rss", "https://appleton.craigslist.org/search/sya?format=rss", "http://greenbay.craigslist.org/search/sya?format=rss"}
 posts = []
 searchTerms = []
 
 while(True):
-        response = urllib.urlopen(url)
-        payload = response.read()
-        response.close()
 
-        encoding = chardet.detect(payload)['encoding']
-        payload = unicode(payload,encoding)
-        payload = payload.encode("utf8")
+        for url in urls:
+                response = urllib.urlopen(url)
+                payload = response.read()
+                response.close()
 
-        xml = ET.fromstring(payload)
+                encoding = chardet.detect(payload)['encoding']
+                payload = unicode(payload,encoding)
+                payload = payload.encode("utf8")
 
-        for child in xml:
-                i = 0
-                tempLink = child.find('{http://purl.org/rss/1.0/}link').text
+                xml = ET.fromstring(payload)
 
-                if(link.count(tempLink) < 1):
+                for child in xml:
+                        tempLink = child.find('{http://purl.org/rss/1.0/}link').text
+
                         posts.append(posting(tempLink, child.find('{http://purl.org/rss/1.0/}description').text, child.find('{http://purl.org/rss/1.0/}title').text))
 
         file = open('searchTerms', 'r')
@@ -65,19 +64,23 @@ while(True):
                 post.SetScore(searchTerms)
                 post.SetPrice(post.title)
 
-        posts.sort(key=attrgetter('price'))
-        posts.sort(key=attrgetter('score'), reverse=True)
+        posts.sort(key=attrgetter('score', 'price'))
 
-        writeFile = open("results", "w")
+        writeFile = open("/var/www/html/index.html", "w")
+
+        writeFile.write("<html><body>")
 
         for post in posts:
                 print post.title, "\n", post.link, "\n", post.description, "\n", post.score, "\n\n"
 
                 if (post.description):
-                        writeFile.write(post.title + "\n" + post.link + "\n" + str(post.score) + "\n" + str(post.price) + "\n\n")
+                        writeFile.write("<br><a href='" + post.link + "'>" + post.title + "</a><br>" + str(post.score) + "<br>" + str(post.price) + "<br><br>")
+
+        writeFile.write("</body></html>")
 
         writeFile.close()
 
         searchTerms = []
+        posts = []
 
-        time.sleep(300)
+        time.sleep(60)
