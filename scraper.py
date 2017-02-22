@@ -21,7 +21,8 @@ class posting:
                         if(string):
                                 if (string[0] == '$'):
                                         string = string.replace("$",'')
-                                        self.price = ''.join(c for c in string if c in digits)
+                                        string = ''.join(c for c in string if c in digits)
+                                        self.price = int(string)
 
         def __init__(self, link, desc, title):
                 self.link = link
