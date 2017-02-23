@@ -31,11 +31,27 @@ class posting:
                 self.score = 0
                 self.price = 0
 
-urls = {"https://sheboygan.craigslist.org/search/sya?format=rss", "https://milwaukee.craigslist.org/search/sya?format=rss", "https://appleton.craigslist.org/search/sya?format=rss", "http://greenbay.craigslist.org/search/sya?format=rss"}
+configFile = open("settings")
+for config in configFile:
+        split = config.split('=')
+        split[1] = split[1].replace('\n','')
+        if(split[0] == 'doc_root'):
+                docRoot = split[1]
+        elif(split[0] == 'search'):
+                searchFile = split[1]
+        elif(split[0] == 'cities'):
+                siteFile = split[1]
+configFile.close()
+
 posts = []
 searchTerms = []
-
+urls = []
 while(True):
+        urlFile = open(siteFile, 'r')
+        for site in urlFile:
+                site = site.replace('\n', '')
+                urls.append(site)
+        urlFile.close()
 
         for url in urls:
                 response = urllib.urlopen(url)
@@ -53,7 +69,7 @@ while(True):
 
                         posts.append(posting(tempLink, child.find('{http://purl.org/rss/1.0/}description').text, child.find('{http://purl.org/rss/1.0/}title').text))
 
-        file = open('searchTerms', 'r')
+        file = open(searchFile, 'r')
         for line in file:
                 fileString = line
                 fileString = fileString.replace("\n", '')
@@ -67,7 +83,7 @@ while(True):
 
         posts.sort(key=attrgetter('score', 'price'))
 
-        writeFile = open("/var/www/html/index.html", "w")
+        writeFile = open(docRoot + "/index.html", "w")
 
         writeFile.write("<html><body>")
 
