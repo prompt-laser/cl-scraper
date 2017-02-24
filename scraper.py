@@ -83,26 +83,36 @@ urls = []               #Create the URLs list
 #Main loop of the script
 while(True):
 
-        #Get the list of URLs to search
-        urlFile = open(siteFile, 'r')           #Open the URL file
-        for site in urlFile:                    #Iterate through each line of the file
-                site = site.replace('\n', '')   #Remove the newline character from the end of the string
-                urls.append(site)               #Add the URL to the URLs list
-        urlFile.close()                         #Close the URL file
+        try:                                            #Wrap the getting the URLs in a try statement in case the file path is wrong
 
-        print("Getting RSS feeds")              #Output to let the user know it's working
+                #Get the list of URLs to search
+                urlFile = open(siteFile, 'r')           #Open the URL file
+                for site in urlFile:                    #Iterate through each line of the file
+                        site = site.replace('\n', '')   #Remove the newline character from the end of the string
+                        urls.append(site)               #Add the URL to the URLs list
+                urlFile.close()                         #Close the URL file
+
+        except:                                         #If there's an error opening URL file
+                sys.exit("Error reading URL file")      #Exit the script showing an error
+
+        print("Getting RSS feeds")                      #Output to let the user know it's working
 
         #Get RSS feed
-        for url in urls:                                        #Iterate through the list of URLs
-                response = urllib.urlopen(url)                  #Open the link
-                payload = response.read()                       #Get the data from the link
-                response.close()                                #Close the link
+        for url in urls:                                                #Iterate through the list of URLs
 
-                encoding = chardet.detect(payload)['encoding']  #Detect the encoding of the returned data
-                payload = unicode(payload,encoding)             #Re-encode the data in unicode
-                payload = payload.encode("utf8")                #Re-encode the data in UTF-8
+                try:                                                    #Wrap the open RSS feed in a try statement in case a link fails to open
+                        response = urllib.urlopen(url)                  #Open the link
+                        payload = response.read()                       #Get the data from the link
+                        response.close()                                #Close the link
 
-                xml = ET.fromstring(payload)                    #Parse the data into XML
+                        encoding = chardet.detect(payload)['encoding']  #Detect the encoding of the returned data
+                        payload = unicode(payload,encoding)             #Re-encode the data in unicode
+                        payload = payload.encode("utf8")                #Re-encode the data in UTF-8
+
+                        xml = ET.fromstring(payload)                    #Parse the data into XML
+
+                except:                                                 #If there's an error opening/parsing an RSS feed
+                        print("Error opening/parsing RSS feed" + url)   #Print an error to let the user know an RSS feed failed to open
 
                 #Parse XML into usable data and add it to the posts list
                 for child in xml:                                                               #Iterate through the elements of the XML
@@ -113,12 +123,15 @@ while(True):
                         posts.append(posting(link, description, title))                         #Add an element to the posts list. Sending the parsed data to the class constructor
 
         #Get the search terms
-        file = open(searchFile, 'r')                            #Open the file with the search terms in it
-        for line in file:                                       #Iterate over each line of the file
-                fileString = line                               #Set fileString to the string from file
-                fileString = fileString.replace("\n", '')       #Remove the newline character from the end of the string
-                searchTerms.append(fileString)                  #Add the term to the list of search terms
-        file.close()                                            #Close the search terms file
+        try:                                                            #Wrap the opening search terms file in a try statement in case the path is wrong
+                file = open(searchFile, 'r')                            #Open the file with the search terms in it
+                for line in file:                                       #Iterate over each line of the file
+                        fileString = line                               #Set fileString to the string from file
+                        fileString = fileString.replace("\n", '')       #Remove the newline character from the end of the string
+                        searchTerms.append(fileString)                  #Add the term to the list of search terms
+                file.close()                                            #Close the search terms file
+        except:                                                         #If there's an error opening/reading the file
+                sys.exit("Error opening/reading file for search terms") #Exit the script showing an error
 
         #Score and set the price of each post
         for post in posts:                                      #Iterate through the list of posts
@@ -130,7 +143,7 @@ while(True):
 
         #Write the results to index.html at the document root specified in the config file
         print("Writing index.html")                                                     #Output to let the user know what it's doing
-        writeFile = open(docRoot + "index.html", "w")                                  #Open index.html for writing
+        writeFile = open(docRoot + "index.html", "w")                                   #Open index.html for writing
         writeFile.write("<html><body><table style='width:100%' border=#000000>")        #Write the opening tags and declare a html table
         writeFile.write("<tr><th>Item</th><th>Score</th><th>Price</th></tr>")           #Write the column names at the top of the table
 
