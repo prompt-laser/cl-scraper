@@ -111,8 +111,9 @@ while(True):
         posts.sort(key=attrgetter('score', 'price'))            #Sort the posts by score(lowest first), and then by price(lowest first)
 
         #Write the results to index.html at the document root specified in the config file
-        writeFile = open(docRoot + "/index.html", "w")  #Open index.html for writing
-        writeFile.write("<html><body><table style="width:100%"><tr><th>Item</th><th>Score</th><th>Price</th></tr>") #Write the opening tags
+        writeFile = open(docRoot + "/index.html", "w")                          #Open index.html for writing
+        writeFile.write("<html><body><table style='width:100%'>")               #Write the opening tags and declare a html table
+        writeFile.write("<tr><th>Item</th><th>Score</th><th>Price</th></tr>")   #Write the column names at the top of the table
 
         for post in posts:                                                                                                                                      #Iterate through the list of posts
                 print post.title, "\n", post.link, "\n", post.description, "\n", post.score, "\n\n"                                                             #Write post info to console for debugging
