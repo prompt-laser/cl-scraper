@@ -1,5 +1,12 @@
+#specify the document root. be sure to add the trailing '/' or '\'
 doc_root=/var/www/html/
+#specify the full path to the file with your search terms
+#this can be just the filename if it's in the same directory that hte script is running in
 search=searchTerms
+#specify the full path to the file with the links to the RSS feeds
+#This can be just the filename if it's in the same directory that the script is running in
 cities=sites
+#specify the minimum/maximum price that the price should be between for adding a point to the post's score
+#make sure these are numeric values and not strings. ie: '1' instead of 'one'
 min_price=1
 max_price=100
