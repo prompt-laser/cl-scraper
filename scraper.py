@@ -49,8 +49,8 @@ class posting:
 #Open config file and get stored configuration settings
 configFile = open("settings")                   #Open config stored in settings
 for config in configFile:                       #Iterate through each line of the file
+        config = config.replace('\n', '')       #Remove the newline character from th eend of the string
         split = config.split('=')               #Split the line on the equals sign. This allows us to get the setting and its stored value
-        split[1] = split[1].replace('\n','')    #Remove the newline character from the end of the string
         if(split[0] == 'doc_root'):             #If the setting is for the web document root
                 docRoot = split[1]              #Set the docRoot variable to the stored value
         elif(split[0] == 'search'):             #If the setting is for the search terms
@@ -58,6 +58,7 @@ for config in configFile:                       #Iterate through each line of th
         elif(split[0] == 'cities'):             #If the setting is for the list of URLs
                 siteFile = split[1]             #Set the siteFile variable to the stored value
 configFile.close()                              #Close the config file
+
 
 posts = []              #Create the posts list
 searchTerms = []        #Create the searchTerms list
