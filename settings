@@ -1,3 +1,5 @@
 doc_root=/var/www/html
 search=searchTerms
 cities=sites
+min_price=1
+max_price=100
