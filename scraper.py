@@ -13,6 +13,7 @@ import urllib                           #used for getting the XML from craigslis
 import xml.etree.ElementTree as ET      #used to parse the XML into usable data
 import chardet                          #used to make sure the XML is in a parsable format
 import time                             #used to sleep the script during the main while loop
+import sys                              #used for exiting the script on errors
 from operator import attrgetter         #used for sorting the results by attribute
 from string import digits               #used for parsing the price from the post title
 
@@ -20,13 +21,16 @@ from string import digits               #used for parsing the price from the pos
 class posting:
 
         #This calculates the score of the post based on specified keywords found in the post description.
-        def SetScore(self, terms):
+        def SetScore(self, terms, min, max):
                 self.score = 0                                          #Set the score to 0 so the score doesn't keep climbing
                 if(self.description):                                   #Make sure there's a description before trying to score it
                         for term in terms:                              #For each item in the list of search terms check the description for that term
                                 tempDesc = self.description.lower()     #Convert the description to all lowercase text
                                 if(tempDesc.find(term) != -1):          #If the term is found
                                         self.score = self.score - 1     #Take one point off the score
+                if(self.price):                                         #Make sure there's a value for price
+                        if(self.price >= min and self.price <= max):    #IF the price is above the minPrice and below the maxPrice
+                                self.score = self.score - 1             #Take one point off the score
 
         #This figures out the price based on the price listed in the title
         def SetPrice(self, title):
@@ -47,17 +51,29 @@ class posting:
                 self.price = 0                  #Set the price to 0
 
 #Open config file and get stored configuration settings
+print("Loading saved settings")                 #Output to let the user know it's working
 configFile = open("settings")                   #Open config stored in settings
-for config in configFile:                       #Iterate through each line of the file
-        config = config.replace('\n', '')       #Remove the newline character from th eend of the string
-        split = config.split('=')               #Split the line on the equals sign. This allows us to get the setting and its stored value
-        if(split[0] == 'doc_root'):             #If the setting is for the web document root
-                docRoot = split[1]              #Set the docRoot variable to the stored value
-        elif(split[0] == 'search'):             #If the setting is for the search terms
-                searchFile = split[1]           #Set the searchFile variable to the stored value
-        elif(split[0] == 'cities'):             #If the setting is for the list of URLs
-                siteFile = split[1]             #Set the siteFile variable to the stored value
-configFile.close()                              #Close the config file
+
+try:                                                    #Wrapping loading of settings in a try statement in case there's an error parsing the min/max price to an integer
+        for config in configFile:                       #Iterate through each line of the file
+                config = config.replace('\n', '')       #Remove the newline character from th eend of the string
+                split = config.split('=')               #Split the line on the equals sign. This allows us to get the setting and its stored value
+                if(split[0] == 'doc_root'):             #If the setting is for the web document root
+                        docRoot = split[1]              #Set the docRoot variable to the stored value
+                elif(split[0] == 'search'):             #If the setting is for the search terms
+                        searchFile = split[1]           #Set the searchFile variable to the stored value
+                elif(split[0] == 'cities'):             #If the setting is for the list of URLs
+                        siteFile = split[1]             #Set the siteFile variable to the stored value
+                elif(split[0] == 'min_price'):          #If the setting is for the minimum price
+                        minPrice = int(split[1])        #Set the minPrice to the integer value of the setting
+                elif(split[0] == 'max_price'):          #If the setting is for the maximum price
+                        maxPrice = int(split[1])        #Set the maxPrice to the integer value of the setting
+
+except:                                                 #If something errors out
+        configFile.close()                              #Close the config file
+        sys.exit("Error loading settings")              #And exit the script
+
+configFile.close()                                      #Close the config file
 
 
 posts = []              #Create the posts list
@@ -74,7 +90,9 @@ while(True):
                 urls.append(site)               #Add the URL to the URLs list
         urlFile.close()                         #Close the URL file
 
-        #Get RSS feedd
+        print("Getting RSS feeds")              #Output to let the user know it's working
+
+        #Get RSS feed
         for url in urls:                                        #Iterate through the list of URLs
                 response = urllib.urlopen(url)                  #Open the link
                 payload = response.read()                       #Get the data from the link
@@ -105,28 +123,28 @@ while(True):
         #Score and set the price of each post
         for post in posts:                                      #Iterate through the list of posts
                 post.title = post.title.replace("&#x0024;","$") #Replace the unicode value with a $
-                post.SetScore(searchTerms)                      #Set the score of the post passing the list of search terms
                 post.SetPrice(post.title)                       #Set the price of the post passing the title
+                post.SetScore(searchTerms, minPrice, maxPrice)  #Set the score of the post passing the list of search terms
 
         posts.sort(key=attrgetter('score', 'price'))            #Sort the posts by score(lowest first), and then by price(lowest first)
 
         #Write the results to index.html at the document root specified in the config file
-        writeFile = open(docRoot + "/index.html", "w")                          #Open index.html for writing
-        writeFile.write("<html><body><table style='width:100%' border=#000000>")               #Write the opening tags and declare a html table
-        writeFile.write("<tr><th>Item</th><th>Score</th><th>Price</th></tr>")   #Write the column names at the top of the table
+        print("Writing index.html")                                                     #Output to let the user know what it's doing
+        writeFile = open(docRoot + "/index.html", "w")                                  #Open index.html for writing
+        writeFile.write("<html><body><table style='width:100%' border=#000000>")        #Write the opening tags and declare a html table
+        writeFile.write("<tr><th>Item</th><th>Score</th><th>Price</th></tr>")           #Write the column names at the top of the table
 
-        for post in posts:                                                                                                                                      #Iterate through the list of posts
-                print post.title, "\n", post.link, "\n", post.description, "\n", post.score, "\n\n"                                                             #Write post info to console for debugging
-
-                if (post.description):                                                                                                                          #If the post has a description
-                        writeFile.write("<tr><td><a href='" + post.link + "'>" + post.title + "</a></td><td>" + str(post.score) + "</td><td>$" + str(post.price) + "</td></tr>") #Write the post information to index.html inserting line br$
+        for post in posts:                                                                                                                                                      #Iterate through the list of posts
+                if (post.description):                                                                                                                                          #If the post has a description
+                        writeFile.write("<tr><td><a href='" + post.link + "'>" + post.title + "</a></td><td>" + str(post.score) + "</td><td>$" + str(post.price) + "</td></tr>")#Write the post information to index.html inserting line bre$
 
         writeFile.write("</table></body></html>")       #Write the closing tags
 
-        writeFile.close()                       #Close index.html
+        writeFile.close()                               #Close index.html
 
-        searchTerms = []                        #Empty the list of search terms so we can change them mid stream
-        posts = []                              #Empty the list of posts so we don't get duplicates
-        urls = []                               #Empty the list of URLs so we don't open the same link multiple times
+        searchTerms = []                                #Empty the list of search terms so we can change them mid stream
+        posts = []                                      #Empty the list of posts so we don't get duplicates
+        urls = []                                       #Empty the list of URLs so we don't open the same link multiple times
 
-        time.sleep(60)                          #Sleep for 1 minute before doing it all again
+        print("Sleeping for 60 seconds")                #Output to let the user know what it's doing
+        time.sleep(60)                                  #Sleep for 1 minute before doing it all again
