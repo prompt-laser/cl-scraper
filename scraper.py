@@ -130,7 +130,7 @@ while(True):
 
         #Write the results to index.html at the document root specified in the config file
         print("Writing index.html")                                                     #Output to let the user know what it's doing
-        writeFile = open(docRoot + "/index.html", "w")                                  #Open index.html for writing
+        writeFile = open(docRoot + "index.html", "w")                                  #Open index.html for writing
         writeFile.write("<html><body><table style='width:100%' border=#000000>")        #Write the opening tags and declare a html table
         writeFile.write("<tr><th>Item</th><th>Score</th><th>Price</th></tr>")           #Write the column names at the top of the table
 
