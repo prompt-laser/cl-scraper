@@ -112,14 +112,14 @@ while(True):
 
         #Write the results to index.html at the document root specified in the config file
         writeFile = open(docRoot + "/index.html", "w")                          #Open index.html for writing
-        writeFile.write("<html><body><table style='width:100%'>")               #Write the opening tags and declare a html table
+        writeFile.write("<html><body><table style='width:100%' border=#000000>")               #Write the opening tags and declare a html table
         writeFile.write("<tr><th>Item</th><th>Score</th><th>Price</th></tr>")   #Write the column names at the top of the table
 
         for post in posts:                                                                                                                                      #Iterate through the list of posts
                 print post.title, "\n", post.link, "\n", post.description, "\n", post.score, "\n\n"                                                             #Write post info to console for debugging
 
                 if (post.description):                                                                                                                          #If the post has a description
-                        writeFile.write("<tr><td><a href='" + post.link + "'>" + post.title + "</a></td><td>" + str(post.score) + "</td><td>$" + str(post.price) + "</td></tr>") #Write the post information to index.html inserting line breaks into the html
+                        writeFile.write("<tr><td><a href='" + post.link + "'>" + post.title + "</a></td><td>" + str(post.score) + "</td><td>$" + str(post.price) + "</td></tr>") #Write the post information to index.html inserting line br$
 
         writeFile.write("</table></body></html>")       #Write the closing tags
 
@@ -128,5 +128,5 @@ while(True):
         searchTerms = []                        #Empty the list of search terms so we can change them mid stream
         posts = []                              #Empty the list of posts so we don't get duplicates
         urls = []                               #Empty the list of URLs so we don't open the same link multiple times
-        
+
         time.sleep(60)                          #Sleep for 1 minute before doing it all again
