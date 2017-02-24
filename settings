@@ -1,4 +1,4 @@
-doc_root=/var/www/html
+doc_root=/var/www/html/
 search=searchTerms
 cities=sites
 min_price=1
