@@ -112,15 +112,15 @@ while(True):
 
         #Write the results to index.html at the document root specified in the config file
         writeFile = open(docRoot + "/index.html", "w")  #Open index.html for writing
-        writeFile.write("<html><body>")                 #Write the opening tags
+        writeFile.write("<html><body><table style="width:100%"><tr><th>Item</th><th>Score</th><th>Price</th></tr>") #Write the opening tags
 
         for post in posts:                                                                                                                                      #Iterate through the list of posts
                 print post.title, "\n", post.link, "\n", post.description, "\n", post.score, "\n\n"                                                             #Write post info to console for debugging
 
                 if (post.description):                                                                                                                          #If the post has a description
-                        writeFile.write("<br><a href='" + post.link + "'>" + post.title + "</a><br>" + str(post.score) + "<br>" + str(post.price) + "<br><br>") #Write the post information to index.html inserting line breaks into the html
+                        writeFile.write("<tr><td><a href='" + post.link + "'>" + post.title + "</a></td><td>" + str(post.score) + "</td><td>$" + str(post.price) + "</td></tr>") #Write the post information to index.html inserting line breaks into the html
 
-        writeFile.write("</body></html>")       #Write the closing tags
+        writeFile.write("</table></body></html>")       #Write the closing tags
 
         writeFile.close()                       #Close index.html
 
