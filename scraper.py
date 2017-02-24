@@ -125,5 +125,6 @@ while(True):
 
         searchTerms = []                        #Empty the list of search terms so we can change them mid stream
         posts = []                              #Empty the list of posts so we don't get duplicates
-
+        urls = []                               #Empty the list of URLs so we don't open the same link multiple times
+        
         time.sleep(60)                          #Sleep for 1 minute before doing it all again
