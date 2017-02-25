@@ -17,20 +17,31 @@ import sys                              #used for exiting the script on errors
 from operator import attrgetter         #used for sorting the results by attribute
 from string import digits               #used for parsing the price from the post title
 
+class SearchTerm:
+
+        def __init__(self, search):
+                splitString = search.split('=')
+                try:
+                        self.value = int(splitString[1])
+                        self.term = splitString[0]
+                except:
+                        self.value = 1
+                        self.term = splitString[0]
+
 #This is the custom class used for storing information about each post
 class posting:
 
         #This calculates the score of the post based on specified keywords found in the post description.
         def SetScore(self, terms, min, max):
-                self.score = 0                                          #Set the score to 0 so the score doesn't keep climbing
-                if(self.description):                                   #Make sure there's a description before trying to score it
-                        for term in terms:                              #For each item in the list of search terms check the description for that term
-                                tempDesc = self.description.lower()     #Convert the description to all lowercase text
-                                if(tempDesc.find(term) != -1):          #If the term is found
-                                        self.score = self.score - 1     #Take one point off the score
-                if(self.price):                                         #Make sure there's a value for price
-                        if(self.price >= min and self.price <= max):    #IF the price is above the minPrice and below the maxPrice
-                                self.score = self.score - 1             #Take one point off the score
+                self.score = 0                                                  #Set the score to 0 so the score doesn't keep climbing
+                if(self.description):                                           #Make sure there's a description before trying to score it
+                        for term in terms:                                      #For each item in the list of search terms check the description for that term
+                                tempDesc = self.description.lower()             #Convert the description to all lowercase text
+                                if(tempDesc.find(term.term) != -1):             #If the term is found
+                                        self.score = self.score - term.value    #Take one point off the score
+                if(self.price):                                                 #Make sure there's a value for price
+                        if(self.price >= min and self.price <= max):            #If the price is above the minPrice and below the maxPrice
+                                self.score = self.score - 1                     #Take one point off the score
 
         #This figures out the price based on the price listed in the title
         def SetPrice(self, title):
@@ -128,7 +139,7 @@ while(True):
                 for line in file:                                       #Iterate over each line of the file
                         fileString = line                               #Set fileString to the string from file
                         fileString = fileString.replace("\n", '')       #Remove the newline character from the end of the string
-                        searchTerms.append(fileString)                  #Add the term to the list of search terms
+                        searchTerms.append(SearchTerm(fileString))      #Add the term to the list of search terms
                 file.close()                                            #Close the search terms file
         except:                                                         #If there's an error opening/reading the file
                 sys.exit("Error opening/reading file for search terms") #Exit the script showing an error
