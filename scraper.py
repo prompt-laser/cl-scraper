@@ -155,7 +155,9 @@ while(True):
         #Write the results to index.html at the document root specified in the config file
         print("Writing index.html")                                                     #Output to let the user know what it's doing
         writeFile = open(docRoot + "index.html", "w")                                   #Open index.html for writing
-        writeFile.write("<html><body><table style='width:100%' border=#000000>")        #Write the opening tags and declare a html table
+        writeFile.write("<html><head>")                                                 #Write the opening HTML tags
+        writeFile.write("<meta http-equiv='refresh' content='120; url=index.html' />")  #Write HTML redirect to refresh the page
+        writeFile.write("</head><body><table style='width:100%' border=#000000>")       #Close the head section and declare a html table
         writeFile.write("<tr><th>Item</th><th>Score</th><th>Price</th></tr>")           #Write the column names at the top of the table
 
         for post in posts:                                                                                                                                                      #Iterate through the list of posts
@@ -165,6 +167,7 @@ while(True):
         writeFile.write("</table></body></html>")       #Write the closing tags
 
         writeFile.close()                               #Close index.html
+
 
         searchTerms = []                                #Empty the list of search terms so we can change them mid stream
         posts = []                                      #Empty the list of posts so we don't get duplicates
