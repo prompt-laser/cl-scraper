@@ -163,12 +163,12 @@ while(True):
         writeFile.write("</head><body><table style='width:100%' border=#000000>")       #Close the head section and declare a html table
         writeFile.write("<tr><th>Item</th><th>Score</th><th>Price</th></tr>")           #Write the column names at the top of the table
 
-                for post in posts:                                      #Iterate through the list of posts
-                        if (post.description):                          #If the post has a description
-                                try:                                    #Wrapping the writing of index.html in a try statement in case something can't be encoded to ascii
-                                        writeFile.write("<tr><td><a href='" + post.link + "'>" + post.title + "</a></td><td>" + str(post.score) + "</td><td>$" + str(post.price) + "</td></tr>")#Write the post information to index.html inserting $
-                                except:                                 #If there's an error
-                                        writeFile.write("<tr><td><a href='" + post.link + "'>Error writing post title" + "</a></td><td>" + str(post.score) + "</td><td>$" + str(post.price) + "</td></tr>")    #Write the post information minus the title
+        for post in posts:                                      #Iterate through the list of posts
+                if (post.description):                          #If the post has a description
+                        try:                                    #Wrapping the writing of index.html in a try statement in case something can't be encoded to ascii
+                                writeFile.write("<tr><td><a href='" + post.link + "'>" + post.title + "</a></td><td>" + str(post.score) + "</td><td>$" + str(post.price) + "</td></tr>")#Write the post information to index.html inserting $
+                        except:                                 #If there's an error
+                                writeFile.write("<tr><td><a href='" + post.link + "'>Error writing post title" + "</a></td><td>" + str(post.score) + "</td><td>$" + str(post.price) + "</td></tr>")    #Write the post information minus the title
 
         writeFile.write("</table></body></html>")       #Write the closing tags
 
