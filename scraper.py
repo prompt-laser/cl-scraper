@@ -51,7 +51,10 @@ class posting:
                                 if (string[0] == '$'):                                          #If the first character of the word is a $
                                         string = string.replace("$",'')                         #Remove the $
                                         string = ''.join(c for c in string if c in digits)      #Remove all of the letters from the word so you have a string of numbers
-                                        self.price = int(string)                                #Set the price to the integer value of the created string
+                                        try:                                                    #Wrap setting the price in a try statement. This step errored out in testing
+                                                self.price = int(string)                        #Set the price to the integer value of the created string
+                                        except:                                                 #If there's an error
+                                                self.price = 0                                  #Set the price to 0
 
         #This iinitializes a new instance of the class
         def __init__(self, link, desc, title):
