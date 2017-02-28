@@ -127,6 +127,7 @@ while(True):
 
                 except:                                                 #If there's an error opening/parsing an RSS feed
                         print("Error opening/parsing RSS feed" + url)   #Print an error to let the user know an RSS feed failed to open
+                        break
 
                 #Parse XML into usable data and add it to the posts list
                 for child in xml:                                                               #Iterate through the elements of the XML
