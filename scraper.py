@@ -160,7 +160,7 @@ while(True):
         print("Writing index.html")                                                     #Output to let the user know what it's doing
         writeFile = open(docRoot + "index.html", "w")                                   #Open index.html for writing
         writeFile.write("<html><head>")                                                 #Write the opening HTML tags
-        writeFile.write("<meta http-equiv='refresh' content='120; url=index.html' />")  #Write HTML redirect to refresh the page
+        writeFile.write("<meta http-equiv='refresh' content='121; url=index.html' />")  #Write HTML redirect to refresh the page
         writeFile.write("</head><body><table style='width:100%' border=#000000>")       #Close the head section and declare a html table
         writeFile.write("<tr><th>Item</th><th>Score</th><th>Price</th></tr>")           #Write the column names at the top of the table
 
@@ -181,4 +181,4 @@ while(True):
         urls = []                                       #Empty the list of URLs so we don't open the same link multiple times
 
         print("Sleeping for 60 seconds")                #Output to let the user know what it's doing
-        time.sleep(60)                                  #Sleep for 1 minute before doing it all again
+        time.sleep(900)                                  #Sleep for 1 minute before doing it all again
