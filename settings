@@ -1,5 +1,7 @@
 #specify the document root. be sure to add the trailing '/' or '\'
 doc_root=/var/www/html/
+#specify the file to write to
+doc=index.html
 #specify the full path to the file with your search terms
 #this can be just the filename if it's in the same directory that hte script is running in
 search=searchTerms

@@ -1,4 +1,4 @@
-#############################################################################################
+############################################################################################
 #Craigslist scraper
 #
 #This script will scrape the rss feeds for a category and rank the posts based on how many
@@ -14,6 +14,7 @@ import xml.etree.ElementTree as ET      #used to parse the XML into usable data
 import chardet                          #used to make sure the XML is in a parsable format
 import time                             #used to sleep the script during the main while loop
 import sys                              #used for exiting the script on errors
+import sqlite3                          #used for database access
 from operator import attrgetter         #used for sorting the results by attribute
 from string import digits               #used for parsing the price from the post title
 
@@ -57,12 +58,28 @@ class posting:
                                                 self.price = 0                                  #Set the price to 0
 
         #This iinitializes a new instance of the class
-        def __init__(self, link, desc, title):
+        def __init__(self, link, desc, title, price, score):
                 self.link = link                #Set the link property to the passed value
                 self.description = desc         #Set the description property to the passed value
                 self.title = title              #Set the title property to the passed value
                 self.score = 0                  #Set the score to 0
                 self.price = 0                  #Set the price to 0
+                if(price):
+                        self.price = price
+                if(score):
+                        self.score = score
+
+#Open the database
+conn = sqlite3.connect('CraigsListPosts.db')
+c = conn.cursor()
+
+#Try to create the table. This will error out if the table already exists.
+try:
+        c.execute('''CREATE TABLE posts
+                        (title text, url text, description text, price integer, score integer, month text)''')
+except:
+        print('Database already exists')
+
 
 #Open config file and get stored configuration settings
 print("Loading saved settings")                 #Output to let the user know it's working
@@ -82,6 +99,8 @@ try:                                                    #Wrapping loading of set
                         minPrice = int(split[1])        #Set the minPrice to the integer value of the setting
                 elif(split[0] == 'max_price'):          #If the setting is for the maximum price
                         maxPrice = int(split[1])        #Set the maxPrice to the integer value of the setting
+                elif(split[0] == 'doc'):
+                        document = split[1]
 
 except:                                                 #If something errors out
         configFile.close()                              #Close the config file
@@ -97,6 +116,35 @@ urls = []               #Create the URLs list
 #Main loop of the script
 while(True):
 
+        curMonth = time.strftime("%m")
+        if(curMonth == "01"):
+                oldMonth = ("09",)
+        elif(curMonth == "02"):
+                oldMonth = ("10",)
+        elif(curMonth == "03"):
+                oldMonth = ("11",)
+        elif(curMonth == "04"):
+                oldMonth = ("12",)
+        elif(curMonth == "05"):
+                oldMonth = ("01",)
+        elif(curMonth == "06"):
+                oldMonth = ("02",)
+        elif(curMonth == "07"):
+                oldMonth = ("03",)
+        elif(curMonth == "08"):
+                oldMonth = ("04",)
+        elif(curMonth == "09"):
+                oldMonth = ("05",)
+        elif(curMonth == "10"):
+                oldMonth = ("06",)
+        elif(curMonth == "11"):
+                oldMonth = ("07",)
+        elif(curMonth == "12"):
+                oldMonth = ("08",)
+
+        c.execute("DELETE FROM posts WHERE month=?",oldMonth)
+
+        
         try:                                            #Wrap the getting the URLs in a try statement in case the file path is wrong
 
                 #Get the list of URLs to search
@@ -109,6 +157,8 @@ while(True):
         except:                                         #If there's an error opening URL file
                 sys.exit("Error reading URL file")      #Exit the script showing an error
 
+        newItems = 0
+                
         print("Getting RSS feeds")                      #Output to let the user know it's working
 
         #Get RSS feed
@@ -135,7 +185,24 @@ while(True):
                         description = child.find('{http://purl.org/rss/1.0/}description').text  #Get the description text
                         title = child.find('{http://purl.org/rss/1.0/}title').text              #Get the title text
 
-                        posts.append(posting(link, description, title))                         #Add an element to the posts list. Sending the parsed data to the class constructor
+                        query = (link,)
+
+                        c.execute("SELECT * FROM posts WHERE url=?", query)
+                        existing = c.fetchone()
+                        if(existing == None):
+                                newItems = newItems + 1
+                                tempPost = posting(link, description, title, 0, 0)
+                                tempPost.title = tempPost.title.replace("&#x0024;","$")
+                                tempPost.SetPrice(tempPost.title)
+                                c.execute("""INSERT INTO posts(title, url, description, price, score, month) VALUES
+                                                (?, ?, ?, ?, ?, ?)""",
+                                                (tempPost.title, tempPost.link, tempPost.description, tempPost.price, tempPost.score, time.strftime("%m")))
+                                conn.commit()
+                                
+        print("Added " + str(newItems) + " items to the database")
+
+        for row in c.execute("SELECT * FROM posts"):
+                posts.append(posting(row[1], row[2], row[0], row[3], row[4]))
 
         #Get the search terms
         try:                                                            #Wrap the opening search terms file in a try statement in case the path is wrong
@@ -148,17 +215,14 @@ while(True):
         except:                                                         #If there's an error opening/reading the file
                 sys.exit("Error opening/reading file for search terms") #Exit the script showing an error
 
-        #Score and set the price of each post
-        for post in posts:                                      #Iterate through the list of posts
-                post.title = post.title.replace("&#x0024;","$") #Replace the unicode value with a $
-                post.SetPrice(post.title)                       #Set the price of the post passing the title
-                post.SetScore(searchTerms, minPrice, maxPrice)  #Set the score of the post passing the list of search terms
+        for post in posts:
+                post.SetScore(searchTerms, minPrice, maxPrice)          #Set the score based on keywords in the description and price
 
         posts.sort(key=attrgetter('score', 'price'))            #Sort the posts by score(lowest first), and then by price(lowest first)
 
         #Write the results to index.html at the document root specified in the config file
         print("Writing index.html")                                                     #Output to let the user know what it's doing
-        writeFile = open(docRoot + "index.html", "w")                                   #Open index.html for writing
+        writeFile = open(docRoot + document, "w")                                       #Open index.html for writing
         writeFile.write("<html><head>")                                                 #Write the opening HTML tags
         writeFile.write("<meta http-equiv='refresh' content='121; url=index.html' />")  #Write HTML redirect to refresh the page
         writeFile.write("</head><body><table style='width:100%' border=#000000>")       #Close the head section and declare a html table
@@ -169,7 +233,7 @@ while(True):
                         try:                                    #Wrapping the writing of index.html in a try statement in case something can't be encoded to ascii
                                 writeFile.write("<tr><td><a href='" + post.link + "'>" + post.title + "</a></td><td>" + str(post.score) + "</td><td>$" + str(post.price) + "</td></tr>")#Write the post information to index.html inserting $
                         except:                                 #If there's an error
-                                writeFile.write("<tr><td><a href='" + post.link + "'>Error writing post title" + "</a></td><td>" + str(post.score) + "</td><td>$" + str(post.price) + "</td></tr>")    #Write the post information minus the title
+                                writeFile.write("<tr><td><a href='" + post.link + "'>Error writing post title" + "</a></td><td>" + str(post.score) + "</td><td>$" + str(post.price) + "</td></tr>")    #Write the post information minus the$
 
         writeFile.write("</table></body></html>")       #Write the closing tags
 
@@ -180,5 +244,5 @@ while(True):
         posts = []                                      #Empty the list of posts so we don't get duplicates
         urls = []                                       #Empty the list of URLs so we don't open the same link multiple times
 
-        print("Sleeping for 60 seconds")                #Output to let the user know what it's doing
-        time.sleep(900)                                  #Sleep for 1 minute before doing it all again
+        print("Sleeping for 1 hour")                #Output to let the user know what it's doing
+        time.sleep(3600)                                  #Sleep for 1 minute before doing it all again

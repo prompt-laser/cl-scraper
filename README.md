@@ -1,9 +1,9 @@
 # cl-scraper
-DEPENDENCIES: chardet, pip
+DEPENDENCIES: apache2, chardet, pip
 
 INSTALL DEPENDENCIES: 
 
-                      sudo apt-get install python-pip
+                      sudo apt-get install python-pip apache2
                       sudo pip install chardet
 
 This will look for it's config file in the directory the script is running in. It's looking for a file called 'settings'
